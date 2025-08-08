@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ESP32 File Manager</title>
+</head>
+<body>
+  <h2>ESP32 File Manager</h2>
+  <input type="file" id="uploadFile"><button onclick="upload()">Upload</button>
+  <ul id="fileList"></ul>
+
+  <script>
+    async function loadFiles() {
+      const res = await fetch('/list');
+      const files = await res.json();
+      const list = document.getElementById('fileList');
+      list.innerHTML = '';
+      files.forEach(file => {
+        const li = document.createElement('li');
+        li.innerHTML = `<a href="${file}" target="_blank">${file}</a>
+        <button onclick="del('${file}')">Delete</button>`;
+        list.appendChild(li);
+      });
+    }
+
+    async function del(file) {
+      await fetch(`/delete?file=${file}`);
+      loadFiles();
+    }
+
+    async function upload() {
+      const fileInput = document.getElementById('uploadFile');
+      const file = fileInput.files[0];
+      if (!file) return alert("Select a file.");
+      const form = new FormData();
+      form.append("file", file);
+      await fetch('/upload', { method: 'POST', body: form });
+      loadFiles();
+    }
+
+    loadFiles();
+  </script>
+</body>
+</html>
